@@ -2,7 +2,6 @@ name: zizmor
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
   merge_group:
 
 permissions: {}
@@ -10,7 +9,6 @@ permissions: {}
 jobs:
   zizmor:
     name: zizmor
-    if: github.event_name == 'merge_group' || !github.event.pull_request.draft
     runs-on: ubuntu-26.04
     permissions:
       contents: read # actions/checkout
