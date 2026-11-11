@@ -47,8 +47,6 @@ jobs:
         if: steps.inputs.outputs.found == 'true'
         uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
-          # A newer zizmor needs a newer action: the action only runs versions it has a lock for.
-          version: "1.32.0"
           persona: regular
           advanced-security: "false"
           annotations: "true"
