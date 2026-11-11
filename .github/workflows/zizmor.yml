@@ -1,0 +1,58 @@
+name: zizmor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+
+permissions: {}
+
+jobs:
+  zizmor:
+    name: zizmor
+    if: github.event_name == 'merge_group' || !github.event.pull_request.draft
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read # actions/checkout
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Look for anything to audit
+        id: inputs
+        run: |
+          found=$(find . -path ./.git -prune -o -type f \( \
+            -path './.github/workflows/*.yml' -o -path './.github/workflows/*.yaml' \
+            -o -name action.yml -o -name action.yaml \
+            -o -path './.github/dependabot.yml' -o -path './.github/dependabot.yaml' \
+            \) -print -quit)
+          if [ -n "$found" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nothing to audit: no workflows, actions or dependabot.yml."
+          fi
+
+      # Inline and passed with --config, so a repo's own zizmor.yml can't loosen the gate.
+      - name: Write zizmor config
+        if: steps.inputs.outputs.found == 'true'
+        run: |
+          cat > "$RUNNER_TEMP/zizmor.yml" <<'EOF'
+          rules:
+            dependabot-cooldown:
+              config:
+                days: 3
+          EOF
+
+      - name: Run zizmor
+        if: steps.inputs.outputs.found == 'true'
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          # A newer zizmor needs a newer action: the action only runs versions it has a lock for.
+          version: "1.32.0"
+          persona: regular
+          # With Advanced Security on, the action uploads results and never fails on findings.
+          advanced-security: "false"
+          annotations: "true"
+          config: ${{ runner.temp }}/zizmor.yml
