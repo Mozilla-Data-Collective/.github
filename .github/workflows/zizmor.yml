@@ -52,7 +52,6 @@ jobs:
           # A newer zizmor needs a newer action: the action only runs versions it has a lock for.
           version: "1.32.0"
           persona: regular
-          # With Advanced Security on, the action uploads results and never fails on findings.
           advanced-security: "false"
           annotations: "true"
           config: ${{ runner.temp }}/zizmor.yml
